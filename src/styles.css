@@ -3,27 +3,35 @@
 }
 
 :root {
-  --background-color: #0b0b0e;
+  /* 夜市主題配色 */
+  --background-color: #0a0a0f;
   --text-color: #ffffff;
-  --gamba-ui-primary-color: #9564ff;
+  --gamba-ui-primary-color: #ff4757; /* 夜市紅 */
+  --gamba-ui-secondary-color: #fbbf24; /* 金色 */
 
   --gamba-ui-border-radius: 10px;
 
-  --gamba-ui-button-default-background: #0e0e16;
-  --gamba-ui-button-default-background-hover: #11111d;
+  --gamba-ui-button-default-background: #1a1a2e;
+  --gamba-ui-button-default-background-hover: #2a2a4e;
   --gamba-ui-button-default-color: white;
 
-  --gamba-ui-button-main-background: #8851ff;
+  --gamba-ui-button-main-background: #dc2626; /* 紅色燈籠 */
   --gamba-ui-button-main-color: white;
-  --gamba-ui-button-main-background-hover: #9564ff;
+  --gamba-ui-button-main-background-hover: #ff4757;
 
-  --gamba-ui-input-background: #0e0e16;
+  --gamba-ui-input-background: #1a1a2e;
   --gamba-ui-input-color: #ffffff;
-  --gamba-ui-input-background-hover: #11111d;
+  --gamba-ui-input-background-hover: #2a2a4e;
+  
+  /* 夜市霓虹效果 */
+  --neon-red: #ff4757;
+  --neon-gold: #fbbf24;
+  --neon-pink: #ff6b9d;
+  --neon-cyan: #00d4ff;
 }
 
 body, input, button, textarea, pre {
-  font-family: 'DM Sans', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'DM Sans', 'Noto Sans TC', 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 16px;
 }
 
@@ -47,17 +55,42 @@ a {
 }
 
 body::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 body::-webkit-scrollbar-thumb {
-  background-color: var(--gamba-ui-primary-color);
+  background: linear-gradient(180deg, var(--neon-red), var(--neon-gold));
+  border-radius: 3px;
+}
+
+/* 夜市霓虹文字效果 */
+.neon-text {
+  text-shadow:
+    0 0 5px var(--neon-red),
+    0 0 10px var(--neon-red),
+    0 0 20px var(--neon-red),
+    0 0 40px var(--neon-red);
+}
+
+/* 錢幣/金幣效果 */
+.gold-coin {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 燈籠裝飾 */
+.lantern-bg {
+  background: radial-gradient(ellipse at top, rgba(220, 38, 38, 0.15) 0%, transparent 50%),
+              radial-gradient(ellipse at bottom, rgba(251, 191, 36, 0.1) 0%, transparent 50%);
 }
 
 .wallet-adapter-button.wallet-adapter-button-trigger {
   height: 40px;
   line-height: 40px;
   font-weight: normal;
-  background: rgb(55, 57, 82);
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
   border-radius: 10px;
+  border: 2px solid var(--neon-gold);
 }
