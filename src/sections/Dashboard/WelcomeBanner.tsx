@@ -1,35 +1,62 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import React from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useUserStore } from '../../hooks/useUserStore';
 
+/* 燈籠搖曳動畫 */
+const lanternSway = keyframes`
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+`;
+
+const glow = keyframes`
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+`;
+
 const WelcomeWrapper = styled.div`
-  /* Animations */
   @keyframes welcome-fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
   }
 
-  @keyframes backgroundGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  /* Styling */
-  background: linear-gradient(-45deg, #ffb07c, #ff3e88, #2969ff, #ef3cff, #ff3c87);
-  background-size: 300% 300%;
-  animation: welcome-fade-in 0.5s ease, backgroundGradient 30s ease infinite;
-  border-radius: 12px; /* Slightly larger radius for a modern look */
-  padding: 24px; /* Consistent padding */
+  background: linear-gradient(-45deg, #1a0a0a, #2d1f1f, #1a1a2e, #0a1a1a);
+  background-size: 400% 400%;
+  animation: welcome-fade-in 0.5s ease;
+  border-radius: 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px; /* Consistent gap */
+  gap: 20px;
   text-align: center;
-  filter: drop-shadow(0 4px 3px rgba(0,0,0,.07)) drop-shadow(0 2px 2px rgba(0,0,0,.06));
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  box-shadow: 
+    0 0 30px rgba(220, 38, 38, 0.3),
+    0 0 60px rgba(251, 191, 36, 0.1),
+    inset 0 0 30px rgba(0, 0, 0, 0.5);
 
-  /* Desktop styles using a min-width media query */
+  /* 燈籠裝飾 */
+  &::before {
+    content: '🏮';
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    font-size: 2rem;
+    animation: ${lanternSway} 3s ease-in-out infinite;
+  }
+  
+  &::after {
+    content: '🏮';
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 2rem;
+    animation: ${lanternSway} 3s ease-in-out infinite 0.5s;
+  }
+
   @media (min-width: 800px) {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -41,21 +68,34 @@ const WelcomeWrapper = styled.div`
 `;
 
 const WelcomeContent = styled.div`
+  position: relative;
+  z-index: 1;
+  
   h1 {
-    font-size: 1.75rem; /* Responsive font size */
+    font-size: 1.75rem;
     margin: 0 0 8px 0;
     color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+    
+    /* 金色文字強調 */
+    span.gold {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
   }
 
   p {
     font-size: 1rem;
     color: #ffffffd1;
     margin: 0;
+    line-height: 1.5;
   }
 
   @media (min-width: 800px) {
     h1 {
-      font-size: 2.25rem;
+      font-size: 2.5rem;
     }
     p {
       font-size: 1.125rem;
@@ -65,9 +105,11 @@ const WelcomeContent = styled.div`
 
 const ButtonGroup = styled.div`
   display: flex;
-  flex-wrap: wrap; /* Allows buttons to wrap onto the next line */
-  gap: 12px; /* Space between buttons */
-  justify-content: center; /* Center buttons on mobile */
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
 
   @media (min-width: 800px) {
     flex-direction: column;
@@ -76,35 +118,38 @@ const ButtonGroup = styled.div`
 `;
 
 const ActionButton = styled.button`
-  /* Base styles */
   border: none;
   border-radius: 10px;
   padding: 12px 20px;
   font-size: 0.9rem;
   font-weight: 600;
-  background: #ffffffdf;
-  color: black;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  flex-grow: 1; /* Allows buttons to share space on mobile */
+  transition: all 0.3s ease;
+  flex-grow: 1;
   text-align: center;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+  border: 1px solid rgba(251, 191, 36, 0.3);
 
   &:hover {
-    background: white;
-    transform: translateY(-2px); /* Subtle hover effect */
+    background: linear-gradient(135deg, #ff4757, #dc2626);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 6px 20px rgba(255, 71, 87, 0.5),
+      0 0 20px rgba(251, 191, 36, 0.3);
   }
 
-  /* On desktop, buttons take full width of their container */
   @media (min-width: 800px) {
     width: 100%;
-    flex-grow: 0; /* Reset flex-grow */
+    flex-grow: 0;
   }
 `;
 
 export function WelcomeBanner() {
   const wallet = useWallet();
   const walletModal = useWalletModal();
-  const { set: setUserModal } = useUserStore(); // Destructure for cleaner access
+  const { set: setUserModal } = useUserStore();
 
   const handleCopyInvite = () => {
     setUserModal({ userModal: true });
@@ -113,23 +158,29 @@ export function WelcomeBanner() {
     }
   };
 
-  const openLink = (url) => () => window.open(url, '_blank', 'noopener,noreferrer');
+  const openLink = (url: string) => () => window.open(url, '_blank', 'noopener,noreferrer');
 
   return (
     <WelcomeWrapper>
       <WelcomeContent>
-        <h1>Welcome to Gamba v2 👋</h1>
-        <p>A fair, simple and decentralized casino on Solana.</p>
+        <h1>
+          歡迎來到 <span className="gold">金紙夜市</span> 🏮
+        </h1>
+        <p>
+          台灣在地區塊鏈遊戲廣場 🎰
+          <br />
+          試試手氣，發財金滾滾來！
+        </p>
       </WelcomeContent>
       <ButtonGroup>
         <ActionButton onClick={handleCopyInvite}>
-          💸 Copy Invite
+          💰 領取彩金
         </ActionButton>
         <ActionButton onClick={openLink('https://v2.gamba.so/')}>
-          🚀 Add Liquidity
+          🚀 添加流動性
         </ActionButton>
         <ActionButton onClick={openLink('https://discord.gg/HSTtFFwR')}>
-          💬 Discord
+          💬 加入社群
         </ActionButton>
       </ButtonGroup>
     </WelcomeWrapper>
