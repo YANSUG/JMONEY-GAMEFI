@@ -7,30 +7,31 @@ import { SOUND_LOSE, SOUND_PLAY, SOUND_TICK, SOUND_WIN } from './constants'
 import { Container, Result, RollUnder, Stats } from './styles'
 
 const calculateArraySize = (odds: number): number => {
+  if (odds <= 0 || odds >= 100) return 100
   const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a)
   return 100 / gcd(100, odds)
 }
 
-export const outcomes = (odds: number) => {
-  const arraySize = calculateArraySize(odds)
-  const payout = (100 / odds).toFixed(4)
-
-  let payoutArray = Array.from({ length: arraySize }).map((_, index) =>
-    index < (arraySize * (odds / 100)) ? parseFloat(payout) : 0
-  )
-
-  const totalValue = payoutArray.reduce((acc, curr) => acc + curr, 0)
-
-  if (totalValue > arraySize) {
-    for (let i = payoutArray.length - 1; i >= 0; i--) {
-      if (payoutArray[i] > 0) {
-        payoutArray[i] -= totalValue - arraySize
-        payoutArray[i] = parseFloat(payoutArray[i].toFixed(4))
-        break
-      }
+export const outcomes = (rollUnder: number) => {
+  // rollUnder is 1-99, represents the threshold
+  // Win if random result < rollUnder
+  const winChance = rollUnder
+  const multiplier = 100 / winChance
+  
+  // Create a flat array where:
+  // - Indices 0 to rollUnder-1 are "wins" with payout multiplier
+  // - Indices rollUnder to 99 are "losses" with 0 payout
+  const arraySize = 100
+  const payoutArray: number[] = []
+  
+  for (let i = 0; i < arraySize; i++) {
+    if (i < rollUnder) {
+      payoutArray.push(multiplier)
+    } else {
+      payoutArray.push(0)
     }
   }
-
+  
   return payoutArray
 }
 
@@ -39,7 +40,8 @@ export default function Dice() {
   const [wager, setWager] = useWagerInput()
   const pool = useCurrentPool()
   const [resultIndex, setResultIndex] = React.useState(-1)
-  const [rollUnderIndex, setRollUnderIndex] = React.useState(Math.floor(100 / 2))
+  const [rollUnderIndex, setRollUnderIndex] = React.useState(50)
+  const [error, setError] = React.useState<string | null>(null)
   const sounds = useSound({
     win: SOUND_WIN,
     play: SOUND_PLAY,
@@ -47,34 +49,40 @@ export default function Dice() {
     tick: SOUND_TICK,
   })
 
-  const odds = Math.floor((rollUnderIndex / 100) * 100)
-  const multiplier = Number(BigInt(100 * BPS_PER_WHOLE) / BigInt(rollUnderIndex)) / BPS_PER_WHOLE
-
-  const bet = React.useMemo(() => outcomes(odds), [rollUnderIndex])
-
+  // Ensure rollUnder is in valid range
+  const safeRollUnder = Math.max(1, Math.min(94, rollUnderIndex))
+  
+  const multiplier = (100 / safeRollUnder)
+  const bet = React.useMemo(() => outcomes(safeRollUnder), [safeRollUnder])
   const maxWin = multiplier * wager
 
   const game = GambaUi.useGame()
 
   const play = async () => {
-    sounds.play('play')
+    try {
+      setError(null)
+      sounds.play('play')
 
-    await game.play({
-      wager,
-      bet,
-    })
+      await game.play({
+        wager,
+        bet,
+      })
 
-    const result = await game.result()
+      const result = await game.result()
+      const win = result.payout > 0
 
-    const win = result.payout > 0
+      // Generate visual result based on actual on-chain result
+      const resultNum = win
+        ? Math.floor(Math.random() * safeRollUnder)
+        : safeRollUnder + Math.floor(Math.random() * (100 - safeRollUnder))
 
-    const resultNum = win
-      ? Math.floor(Math.random() * rollUnderIndex)
-      : Math.floor(Math.random() * (100 - rollUnderIndex) + rollUnderIndex)
-
-    setResultIndex(resultNum)
-
-    win ? sounds.play('win') : sounds.play('lose')
+      setResultIndex(resultNum)
+      win ? sounds.play('win') : sounds.play('lose')
+    } catch (err: any) {
+      console.error('Play error:', err)
+      setError(err.message || 'Transaction failed')
+      sounds.play('lose')
+    }
   }
 
   return (
@@ -82,15 +90,29 @@ export default function Dice() {
       <GambaUi.Portal target="screen">
         <GambaUi.Responsive>
           <Container>
+            {error && (
+              <div style={{
+                color: 'red',
+                background: 'rgba(255,0,0,0.1)',
+                padding: '10px',
+                borderRadius: '8px',
+                marginBottom: '10px',
+                textAlign: 'center'
+              }}>
+                ❌ {error}
+              </div>
+            )}
+            
             <RollUnder>
               <div>
-                <div>{rollUnderIndex + 1}</div>
+                <div>{safeRollUnder}</div>
                 <div>Roll Under</div>
               </div>
             </RollUnder>
+            
             <Stats>
               <div>
-                <div>{(rollUnderIndex / 100 * 100).toFixed(0)}%</div>
+                <div>{safeRollUnder}%</div>
                 <div>Win Chance</div>
               </div>
               <div>
@@ -106,20 +128,22 @@ export default function Dice() {
                 <div>Payout</div>
               </div>
             </Stats>
+            
             <div style={{ position: 'relative' }}>
               {resultIndex > -1 && (
-                <Result style={{ left: `${resultIndex / 100 * 100}%` }}>
-                  <div key={resultIndex}>{resultIndex + 1}</div>
+                <Result style={{ left: `${resultIndex}%` }}>
+                  <div key={resultIndex}>{resultIndex}</div>
                 </Result>
               )}
               <Slider
                 disabled={gamba.isPlaying}
                 range={[0, 100]}
                 min={1}
-                max={100 - 5}
+                max={94}
                 value={rollUnderIndex}
                 onChange={(value) => {
                   setRollUnderIndex(value)
+                  setResultIndex(-1)
                   sounds.play('tick')
                 }}
               />
@@ -127,6 +151,7 @@ export default function Dice() {
           </Container>
         </GambaUi.Responsive>
       </GambaUi.Portal>
+      
       <GambaUi.Portal target="controls">
         <GambaUi.WagerInput value={wager} onChange={setWager} />
         <GambaUi.PlayButton onClick={play}>Roll</GambaUi.PlayButton>
