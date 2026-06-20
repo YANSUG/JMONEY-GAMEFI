@@ -6,7 +6,7 @@ import { PoolToken, TokenMeta, makeHeliusTokenFetcher } from 'gamba-react-ui-v2'
 // ===================================================================
 
 // RPC 節點：使用 Helius（快速穩定）
-export const RPC_ENDPOINT = import.meta.env.VITE_RPC_ENDPOINT ?? 'https://mainnet.helius-rpc.com/?api-key=7b05747c-b100-4159-ba5f-c85e8c8d3997'
+export const RPC_ENDPOINT = import.meta.env.VITE_RPC_ENDPOINT ?? 'https://mainnet.helius-rpc.com/?api-key=649f41dd-608c-4f76-aa98-338bf640a57a'
 
 // 平台費用接收地址 = 你的錢包 = Pool Authority
 export const PLATFORM_CREATOR_ADDRESS = new PublicKey(
