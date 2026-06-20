@@ -5,31 +5,29 @@ import { PoolToken, TokenMeta, makeHeliusTokenFetcher } from 'gamba-react-ui-v2'
 // I. 網路與平台基礎設定
 // ===================================================================
 
-// RPC 節點：使用 Helius（快速穩定）
 export const RPC_ENDPOINT = import.meta.env.VITE_RPC_ENDPOINT ?? 'https://mainnet.helius-rpc.com/?api-key=649f41dd-608c-4f76-aa98-338bf640a57a'
 
-// 平台費用接收地址 = 你的錢包 = Pool Authority
+// 平台費用接收地址 = 你的錢包
 export const PLATFORM_CREATOR_ADDRESS = new PublicKey(
   'A5zUmE22MHvxWfCtwFTxPtvbCdhZ7gPBVq812atmKKDR',
 )
 
-// 平台相關 URL
 export const EXPLORER_URL = 'https://explorer.gamba.so'
 export const PLATFORM_SHARABLE_URL = 'https://taiwanjmoney.com/'
 
 // ===================================================================
-// II. 平台費用設定 (以小數表示的百分比)
+// II. 平台費用設定
 // ===================================================================
 
-export const PLATFORM_CREATOR_FEE = 0.01        // 1% 平台手續費 (Max 7%)
-export const MULTIPLAYER_FEE = 0.015            // 1.5% 多人遊戲額外費用
-export const PLATFORM_JACKPOT_FEE = 0.001       // 0.1% 平台彩池費用
-export const PLATFORM_REFERRAL_FEE = 0.0025     // 0.25% 推薦人費用
+export const PLATFORM_CREATOR_FEE = 0.01        
+export const MULTIPLAYER_FEE = 0.015            
+export const PLATFORM_JACKPOT_FEE = 0.001       
+export const PLATFORM_REFERRAL_FEE = 0.0025     
 
 export const PLATFORM_ALLOW_REFERRER_REMOVAL = true
 
 // ===================================================================
-// III. 代幣池與元資料 (Pools & Token Metadata)
+// III. 代幣池設定
 // ===================================================================
 
 // 輔助函式：建立 PoolToken 物件
@@ -38,23 +36,26 @@ const lp = (tokenMint: PublicKey | string, poolAuthority?: PublicKey | string): 
   authority: poolAuthority !== undefined ? new PublicKey(poolAuthority) : undefined,
 })
 
-/** 支援的流動性池列表 
- *  JMONEY Pool Info:
- *  - Token mint: HZNnmhAY6xfq2iKRyBTEvTVeoTYJzpkK8mfnfG8Ppump
- *  - Pool Address: A5zUmE22MHvxWfCtwFTxPtvbCdhZ7gPBVq812atmKKDR
- *  - Pool Authority: 11111111111111111111111111111111 (預設)
+/** 
+ * Pool Authority 說明：
+ * - 如果 pool authority 是 111111...（系統程式），表示使用 Gamba 全域池
+ * - 如果是其他地址，需要確認該 pool 已正確建立
+ * 
+ * JMONEY Pool Info:
+ * - Token mint: HZNnmhAY6xfq2iKRyBTEvTVeoTYJzpkK8mfnfG8Ppump
+ * - Pool Authority: 11111111111111111111111111111111 (系統程式 = 全域池)
  */
 export const POOLS = [
-  // SOL: Solana 原生代幣
+  // SOL: 使用預設池
   lp('So11111111111111111111111111111111111111112'),
-  // USDC: 穩定幣
+  // USDC: 使用預設池
   lp('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  // JMONEY: 你的代幣
-  lp('HZNnmhAY6xfq2iKRyBTEvTVeoTYJzpkK8mfnfG8Ppump', 'A5zUmE22MHvxWfCtwFTxPtvbCdhZ7gPBVq812atmKKDR'),
+  // JMONEY: 測試用 - 移除自定義 authority 試試
+  lp('HZNnmhAY6xfq2iKRyBTEvTVeoTYJzpkK8mfnfG8Ppump'),
 ]
 
-// 預設選中的代幣池：JMONEY
-export const DEFAULT_POOL = POOLS[2]
+// 預設選中 SOL（最穩定）
+export const DEFAULT_POOL = POOLS[0]
 
 /** 手動定義的代幣元資料 */
 export const TOKEN_METADATA: (Partial<TokenMeta> & {mint: PublicKey})[] = [
@@ -85,7 +86,6 @@ export const TOS_HTML = `
   <p><b>9. 負責任博弈：</b> 請負責任地進行遊戲，如有需要請尋求協助。</p>
 `
 
-/** Helius 代幣元資料自動抓取設定 */
 export const TOKEN_METADATA_FETCHER = (
   () => {
     if (import.meta.env.VITE_HELIUS_API_KEY) {
